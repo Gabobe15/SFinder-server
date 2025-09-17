@@ -41,22 +41,19 @@ INSTALLED_APPS = [
     
     # apps 
     'auth_app',
-    
-    
-    
+    'core',
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 
 AUTH_COOKIE_SECURE = False
 CORS_ALLOWED_CREDENTIALS = True
@@ -74,7 +71,7 @@ SECURE_REFERRER_POLICY ='no-referrer-when-downgrade'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'auth_app.authentication.KnoxCookieAuthentication',
-        'rest_framework.authentication.SessionAuthentication'
+        # 'rest_framework.authentication.SessionAuthentication'
     ],
 }
 
@@ -174,6 +171,8 @@ SITE_NAME = os.getenv('SITE_NAME')
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour in seconds

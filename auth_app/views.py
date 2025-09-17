@@ -18,8 +18,8 @@ from django.conf import settings
 from rest_framework.response import Response
 from knox.models import AuthToken
 from knox.auth import TokenAuthentication
-from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.contrib.auth import get_user_model, authenticate
 User = get_user_model()
 
 
@@ -110,7 +110,6 @@ class ChangePasswordView(APIView):
 token_generator = PasswordResetTokenGenerator()
 
 
-from django.utils.translation import gettext_lazy as _
 
 class PasswordResetRequestView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -165,53 +164,6 @@ class PasswordResetRequestView(APIView):
             status=status.HTTP_200_OK
         )
 
-# class PasswordResetRequestView(APIView):
-#     permission_classes = [permissions.AllowAny]
-    
-    
-#     def post(self, request, *args, **kwargs):
-#         serializer = PasswordResetRequestSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         email = serializer.validated_data['email']
-#         user = User.objects.filter(email=email).first()
-        
-#         if user:
-#             token = token_generator.make_token(user)
-#             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            
-#             base_url = settings.FRONTEND_PASSWORD_RESET_URL.rstrip('/')
-#             reset_url = f"{base_url}/{uid}/{token}"
-            
-            
-#             # send mail 
-#             subject=_('Password Reset Request'),
-#             message = _(
-#                 "Hello {user.get_email_field_name()}, \n\n", 
-#                 "You requested a password reset for your {settings.SITE_NAME} account, \n", 
-#                 "Please click the following link to reset your password. \n\n", 
-#                 "{reset_url}. \n", 
-#                 "If you don't request this, please ignore this email. \n\n", 
-#                 "Thank you. \n", 
-#                 "The {settings.SITE_NAME} Team", 
-#             ).format(
-#                 email = user.get_email_field_name(),
-#                 site_name = settings.SITE_NAME,
-#                 reset_url = reset_url
-#             )
-            
-#             send_mail(
-#                 subject,
-#                 message,
-#                 settings.DEFAULT_FROM_EMAIL,
-#                 [email],
-#                 fail_silently=False
-#             )
-
-#         return Response(
-#             {"detail": _("If this email is registered, you will receive a password reset link shortly.")},
-#             status=status.HTTP_200_OK
-#         )
-
 class PasswordResetConfirmView(APIView):
     permission_classes = [permissions.AllowAny]
     
@@ -254,6 +206,30 @@ class UsersList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = ListUsersSerializer
     permission_classes = [IsAdmin]
+
+
+class UniversityList(generics.ListAPIView):
+    authentication_classes = [TokenAuthentication]
+    queryset = User.objects.filter(role="university")
+    serializer_class = ListUniversitiesSerializer
+    permission_classes = [IsAdmin]
+
+class UserActivationView(generics.UpdateAPIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.IsAdminUser]
+    queryset = User.objects.filter(role="university")
+    lookup_field = 'id'
+
+
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()
+        is_active = request.data.get('is_active')
+       
+        if is_active is not None:
+            user.is_active = is_active
+            user.save()
+            return Response({"status": "success", "is_active": user.is_active})
+        Response({"error": "is_active filed required"}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateUser(generics.RetrieveUpdateDestroyAPIView):
     pass 

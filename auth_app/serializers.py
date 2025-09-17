@@ -5,37 +5,69 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
+from core.models import Category
 
 
 from .models import *
 from django.contrib.auth import get_user_model
 User = get_user_model()
+from .models import CustomUser
+
+from core.serializers import CategorySerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+
+
+    field_study = serializers.CharField(source='category.name', read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'fullname', 'role', 'email', 'password', 'sex', 'tel_no')
+        fields = ('id', 'fullname', 'role', 'email', 'password', 'sex', 'mobile','address', 'category_id', 'field_study')
         
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        
+        if user.role == "university":
+            from core.models import University
+            University.objects.get_or_create(
+                user=user, 
+               defaults={'name':user.fullname}
+            )
+        
         return user
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     def validate(self, data):
         email = data.get('email')
         password = data.get('password')
 
-        if email and password:
-            user = authenticate(request=self.context.get('request'),email=email, password=password)
-            if not user:
-                raise serializers.ValidationError('Invalid credentials.')
-        else:
-            raise serializers.ValidationError('Both email and password are required.')
+        if not email and password:
+            raise serializers.ValidationError("Both email and password are required")
+        user = authenticate(
+            request=self.context.get('request'),
+            email=email,
+            password=password
+        )
+        
+        if not user:
+            raise serializers.ValidationError('Invalid credentials')
+         
+        if not user.is_active:
+             raise serializers.ValidationError('This account is inactive')
 
         return user
 
@@ -96,5 +128,21 @@ class UserSerializer(serializers.ModelSerializer):
 class ListUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'fullname', 'email', 'role', 'sex', 'tel_no']
-        
+        fields = ['id', 'fullname', 'email', 'role', 'sex', 'mobile', 'is_active']
+        # fields = '__all__'
+
+
+class ListUniversitiesSerializer(serializers.ModelSerializer):
+    field_study = serializers.CharField(source="category.name", read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'fullname', 'email', 'role',
+            'sex', 'mobile', 'is_active', 'field_study'
+        ]
+
+    def get_field_study(self, obj):
+        if obj.role in ["university"] and obj.category:
+            return obj.category.name
+        return None

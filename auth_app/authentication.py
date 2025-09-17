@@ -1,5 +1,4 @@
 from knox.auth import TokenAuthentication
-from rest_framework.authentication import get_authorization_header
 from rest_framework.exceptions import AuthenticationFailed
 
 class KnoxCookieAuthentication(TokenAuthentication):
