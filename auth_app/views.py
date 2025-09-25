@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_bytes, force_str
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 
@@ -51,7 +52,7 @@ class LoginView(APIView):
                     'id': user.id,
                     'email':user.email,
                     'fullname': fullname,
-                    'role':role
+                    'role':role,
                 },
                 'token':token
             }
@@ -242,11 +243,32 @@ class UserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSerializer
     
-    
     def get(self, request):
-        user = request.user
-        serializer = self.serializer_class(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            user = request.user
+            serializer = self.serializer_class(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": "Failed to retrieve user data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    def patch(self, request):
+        try:
+            user = request.user 
+            serializer = self.serializer_class(
+                user, 
+                data=request.data, 
+                partial=True
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": "Failed to update user profile"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 

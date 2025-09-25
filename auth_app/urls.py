@@ -20,7 +20,7 @@ urlpatterns = [
     
     
     
-    path('user', UserView.as_view(), name='user'),
+    path('user/', UserView.as_view(), name='user'),
     path('users', UsersList.as_view(), name='users'),
     path('university-list', UniversityList.as_view(), name='university-list'),
     path('users/<int:id>/activate/', UserActivationView.as_view(), name="user-activate"),

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status  
 from .models import *
 from .serializers import *
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -60,6 +60,7 @@ class UniversityCoursesListCreateView(generics.ListCreateAPIView):
             raise PermissionDenied("Only university can add course")
         serializer.save(university=user)
     
+    
 class UniversityCoursesDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UniversityCourses.objects.all()
     serializer_class = UniversityCoursesSerializer
@@ -92,15 +93,16 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
         user = self.request.user 
         if user.role != 'student':
             raise PermissionDenied("Only students can create applications")
-        course = serializer.validated_data.get('course')
 
-        if Application.objects.filter(student=user, course=course).exists():
-            raise ValidationError("You have already applied for this course.")
-        serializer.save(student=user)
-        # if self.request.user.role == 'student':
-        #     serializer.save(student=self.request.user)
-        # else:
-        #     return PermissionDenied("Only student can create applications")
+        if self.request.user.role == 'student':
+            serializer.save(student=self.request.user)
+        else:
+            return PermissionDenied("Only student can create applications")
+        
+        # course = serializer.validated_data.get('course')
+        # if Application.objects.filter(student=user, course=course).exists():
+        #     raise ValidationError("You have already applied for this course.")
+        # serializer.save(student=user)
     
 
 class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):

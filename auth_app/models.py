@@ -34,12 +34,15 @@ class CustomUser(AbstractUser):
     fullname = models.CharField(max_length=200)
     role = models.CharField(max_length=20, default='student', choices=ROLE_CHOICE)
     mobile = models.CharField(max_length=200, blank=True, null=True)
-    sex = models.CharField(max_length=10, blank=True, null=True)
+    sex = models.CharField(max_length=20, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     
     is_active = models.BooleanField(default=True)
 
     category = models.ForeignKey("core.Category", on_delete=models.SET_NULL, null=True, blank=True, related_name="users")
+
+
+    # created_at = models.DateTimeField(auto_now_add=True)
 
     
     objects = CustomUserManager()

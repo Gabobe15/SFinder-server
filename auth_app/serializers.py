@@ -119,12 +119,14 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return data
 
 class UserSerializer(serializers.ModelSerializer):
+    study = serializers.CharField(source="category.name", read_only=True)
     email = serializers.EmailField()
     
     class Meta:
         model = User 
-        fields = ['id', 'fullname', 'role', 'email']
-    
+        fields = ['id', 'fullname', 'role', 'email', "study",'mobile','sex','address']
+        read_only_fields = ['id', 'role']
+    # 'created_at'
 class ListUsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

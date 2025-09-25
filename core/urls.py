@@ -20,7 +20,7 @@ urlpatterns = [
     path('university-courses/<int:pk>', UniversityCoursesDetailView.as_view(), name='universitycourses-detail'),
     
     # application
-    path('applications', ApplicationListCreateView.as_view(), name='application-list'),
+    path('applications/', ApplicationListCreateView.as_view(), name='application-list'),
     path('applications/<int:pk>/', ApplicationDetailView.as_view(), name='application-detail'),
     path('applications/<int:pk>/status/', ApplicationStatusUpdateView.as_view(), name='application-status'),
 ]
