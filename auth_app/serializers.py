@@ -7,7 +7,6 @@ from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from core.models import Category
 
-
 from .models import *
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -37,13 +36,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User(**validated_data)
         user.set_password(password)
         user.save()
-        
-        if user.role == "university":
-            from core.models import University
-            University.objects.get_or_create(
-                user=user, 
-               defaults={'name':user.fullname}
-            )
         
         return user
 
@@ -111,27 +103,32 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True)
     
-
-    
     def validate(self, data):
         if data['new_password'] != data['confirm_password']:
             raise serializers.ValidationError(_, ("Passwords do not match"))
         return data
 
 class UserSerializer(serializers.ModelSerializer):
-    study = serializers.CharField(source="category.name", read_only=True)
+    field_study = serializers.CharField(source="category.name", read_only=True)
     email = serializers.EmailField()
-    
+
     class Meta:
         model = User 
-        fields = ['id', 'fullname', 'role', 'email', "study",'mobile','sex','address']
+        fields = ['id', 'fullname', 'role', 'email', "field_study",'mobile','sex','address']
         read_only_fields = ['id', 'role']
     # 'created_at'
+
 class ListUsersSerializer(serializers.ModelSerializer):
+    field_study = serializers.CharField(source="category.name", read_only=True)
+    
+
     class Meta:
         model = User
-        fields = ['id', 'fullname', 'email', 'role', 'sex', 'mobile', 'is_active']
+        fields = ['id', 'fullname', 'email', 'role', 'field_study','sex', 'mobile', 'is_active']
         # fields = '__all__'
+
+
+
 
 
 class ListUniversitiesSerializer(serializers.ModelSerializer):
@@ -140,11 +137,8 @@ class ListUniversitiesSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'fullname', 'email', 'role',
+            'id','fullname', 'email', 'role',
             'sex', 'mobile', 'is_active', 'field_study'
         ]
 
-    def get_field_study(self, obj):
-        if obj.role in ["university"] and obj.category:
-            return obj.category.name
-        return None
+

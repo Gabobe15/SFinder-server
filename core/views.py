@@ -25,30 +25,18 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Courses.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     
 class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Courses.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [permissions.AllowAny]
-    
-    
-
-# university 
-class UniversityListCreateView(generics.ListCreateAPIView):
-    queryset = University.objects.all()
-    serializer_class = UniversitySerializer
-    permission_classes = [permissions.AllowAny]
-    
-class UniversityDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = University.objects.all()
-    serializer_class = UniversitySerializer
-    permission_classes = [permissions.AllowAny]
+  
     
 
 # university courses 
 class UniversityCoursesListCreateView(generics.ListCreateAPIView):
-    queryset = UniversityCourses.objects.all()
+    queryset = UniversityCourses.objects.all().order_by('-id')
     serializer_class = UniversityCoursesSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -78,7 +66,6 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    
     def get_queryset(self):
         user = self.request.user
         if user.role == 'student':
@@ -90,20 +77,7 @@ class ApplicationListCreateView(generics.ListCreateAPIView):
         return Application.objects.none()
     
     def perform_create(self, serializer):
-        user = self.request.user 
-        if user.role != 'student':
-            raise PermissionDenied("Only students can create applications")
-
-        if self.request.user.role == 'student':
-            serializer.save(student=self.request.user)
-        else:
-            return PermissionDenied("Only student can create applications")
-        
-        # course = serializer.validated_data.get('course')
-        # if Application.objects.filter(student=user, course=course).exists():
-        #     raise ValidationError("You have already applied for this course.")
-        # serializer.save(student=user)
-    
+        serializer.save(student=self.request.user)
 
 class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ApplicationSerializer
@@ -115,30 +89,16 @@ class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
 
         if user.role == 'student':
-            return Application.objects.filter(student=user)
+            return Application.objects.filter(student=user).order_by('-id')
 
         if user.role == 'university':
-            return Application.objects.filter(university=user)
+            return Application.objects.filter(university=user).order_by('-id')
 
         if user.role == 'admin':
-            return Application.objects.all()
+            return Application.objects.all().order_by('-id')
 
         return Application.objects.none()  # restricts access for unknown roles
 
-
-# class ApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
-#     serializer_class = ApplicationSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-    
-#     def get_queryset(self):
-#         user = self.request.user
-#         if user.role == 'student':
-#             return Application.objects.filter(student=user)
-#         elif user.role == 'university':
-#             return Application.objects.filter(university=user.university)
-#         elif user.role == 'admin':
-#             return Application.objects.all()
-#         return Application.objects.all()
     
 class ApplicationStatusUpdateView(generics.UpdateAPIView):
     serializer_class = ApplicationStatusSerializer
@@ -158,25 +118,3 @@ class ApplicationStatusUpdateView(generics.UpdateAPIView):
         application.save()
         return Response({"status": "success", "application_status": application.status})
         
-
-
-    
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if user.role == 'university':
-    #         return Application.objects.filter(university=user)
-    #     elif user.role == 'admin':
-    #         return Application.objects.all()
-    #     return Application.objects.none()
-    
-    # def perform_update(self, serializer):
-    #     user = self.request.user 
-
-    #     if user.role in ["university", "admin"]:
-    #         serializer.save()
-    #     elif user.role == "student":
-    #         if "status" in serializer.validated_data:
-    #             raise PermissionDenied("Student can not change status")
-    #         serializer.save()
-    #     else:
-    #         PermissionDenied("Not allowed to update this application")

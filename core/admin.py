@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import  Courses, University, UniversityCourses, Application,Category
+from .models import  Courses, UniversityCourses, Application,Category
 # Register your models here.
-admin.site.register((Courses,University,UniversityCourses,Application,Category))
+admin.site.register((Courses,UniversityCourses,Application,Category))

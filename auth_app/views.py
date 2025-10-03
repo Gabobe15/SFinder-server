@@ -204,14 +204,14 @@ class PasswordResetConfirmView(APIView):
         
 class UsersList(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]
-    queryset = User.objects.all()
+    queryset = User.objects.all().select_related('category')
     serializer_class = ListUsersSerializer
     permission_classes = [IsAdmin]
 
 
 class UniversityList(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]
-    queryset = User.objects.filter(role="university")
+    queryset = User.objects.filter(role="university").select_related('category')
     serializer_class = ListUniversitiesSerializer
     permission_classes = [IsAdmin]
 
@@ -245,7 +245,9 @@ class UserView(APIView):
     
     def get(self, request):
         try:
-            user = request.user
+            user = User.objects.select_related('category').get(id=request.user.id)
+            # user = request.user
+            
             serializer = self.serializer_class(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:

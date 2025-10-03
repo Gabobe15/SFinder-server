@@ -11,9 +11,6 @@ urlpatterns = [
     path('courses/', CourseListCreateView.as_view(), name='course-list'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
     
-    # univerisities
-    path('universities', UniversityListCreateView.as_view(), name='university-list'),
-    path('universities/<int:pk>', UniversityDetailView.as_view(), name='university-detail'),
     
     # universitycourse 
     path('university-courses/', UniversityCoursesListCreateView.as_view(), name='universitycourses-list'),

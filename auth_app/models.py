@@ -40,11 +40,8 @@ class CustomUser(AbstractUser):
     is_active = models.BooleanField(default=True)
 
     category = models.ForeignKey("core.Category", on_delete=models.SET_NULL, null=True, blank=True, related_name="users")
-
-
     # created_at = models.DateTimeField(auto_now_add=True)
 
-    
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
