@@ -121,15 +121,10 @@ class UserSerializer(serializers.ModelSerializer):
 class ListUsersSerializer(serializers.ModelSerializer):
     field_study = serializers.CharField(source="category.name", read_only=True)
     
-
     class Meta:
         model = User
         fields = ['id', 'fullname', 'email', 'role', 'field_study','sex', 'mobile', 'is_active']
         # fields = '__all__'
-
-
-
-
 
 class ListUniversitiesSerializer(serializers.ModelSerializer):
     field_study = serializers.CharField(source="category.name", read_only=True)

@@ -232,11 +232,6 @@ class UserActivationView(generics.UpdateAPIView):
             return Response({"status": "success", "is_active": user.is_active})
         Response({"error": "is_active filed required"}, status=status.HTTP_400_BAD_REQUEST)
 
-class UpdateUser(generics.RetrieveUpdateDestroyAPIView):
-    pass 
-
-
-
 
 class UserView(APIView):
     authentication_classes = [TokenAuthentication]
