@@ -77,7 +77,7 @@ REST_FRAMEWORK = {
 
 
 KNOX = {
-    'TOKEN_TTL': timedelta(hours=1),
+    'TOKEN_TTL': timedelta(hours=24),
     'AUTO_REFRESH': True
 }
 
